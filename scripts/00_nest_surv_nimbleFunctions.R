@@ -1,7 +1,3 @@
-# AEB
-# Sept 15, 2020
-# exploring nimble functions to write stage-based nest survival model
-
 #### GET STATE ####
 GetStateTimeVary <- nimbleFunction(
   run = function(state = double(0),

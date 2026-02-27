@@ -1,76 +1,4 @@
-# ConstructPsiMat <- nimbleFunction(
-#   run = function(nsites = double(0), 
-#                  nstates = double(0), 
-#                  nyears = double(0),
-#                  mu.psi = double(1), 
-#                  eps.psi = double(1), 
-#                  beta.D = double(0), 
-#                  distmat = double(2),
-#                  phi= double(3),
-#                  year = double(0), 
-#                  offset = double(0)
-#   ) 
-#   {
-#     returnType(double(3))
-#     
-#     psi.mat <- nimArray(0, dim = c(3, nstates, nstates, nyears))
-#     
-#     psi.mat[1, nstates, nstates, year] <- 1
-#     psi.mat[2, nstates, nstates, year] <- 1
-#     psi.mat[3, nstates, nstates, year] <- 1
-#     
-#     for (i in 1:nsites) {
-#       psi.mat[1, i, nstates, year] <- 1-phi[1, i, year-1+offset]
-#       psi.mat[1, i, i, year] <- plogis(mu.psi[1] + eps.psi[i]) * phi[1, i, year-1+offset]
-#       for (j in 1:nsites) {
-#         if (i != j) {
-#           if (i == 1) {
-#             psi.mat[1, i, j, year] <-  (1-plogis(mu.psi[1] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, 2:nsites] + eps.psi[2:nsites]))) * phi[1, i, year-1+offset]
-#           } else if (i == nsites) {
-#             psi.mat[1, i, j, year] <-  (1-plogis(mu.psi[1] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, 1:(nsites-1)] + eps.psi[1:(nsites-1)]))) * phi[1, i, year-1+offset]
-#           } else {
-#             psi.mat[1, i, j, year] <-  (1-plogis(mu.psi[1] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, c(1:max(i-1, 1), (min(nsites,i+1):nsites))] + eps.psi[c(1:max(i-1, 1), (min(nsites, i+1):nsites))]))) * phi[1, i, year-1+offset]
-#           }
-#         }
-#       }
-#     }
-#     
-#     for (i in 1:nsites) {
-#       psi.mat[2, i, nstates, year] <- 1-phi[2, i, year-1+offset]
-#       psi.mat[2, i, i, year] <- plogis(mu.psi[2] + eps.psi[i]) * phi[2, i, year-1+offset]
-#       for (j in 1:nsites) {
-#         if (i != j) {
-#           if (i == 1) {
-#             psi.mat[2, i, j, year] <-  (1-plogis(mu.psi[2] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, 2:nsites] + eps.psi[2:nsites]))) * phi[2, i, year-1+offset]
-#           } else if (i == nsites) {
-#             psi.mat[2, i, j, year] <-  (1-plogis(mu.psi[2] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, 1:(nsites-1)] + eps.psi[1:(nsites-1)]))) * phi[2, i, year-1+offset]
-#           } else {
-#             psi.mat[2, i, j, year] <-  (1-plogis(mu.psi[2] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, c(1:max(i-1, 1), (min(nsites,i+1):nsites))] + eps.psi[c(1:max(i-1, 1), (min(nsites, i+1):nsites))]))) * phi[2, i, year-1+offset]
-#           }
-#         }
-#       }
-#     }
-#     
-#     for (i in 1:nsites) {
-#       psi.mat[3, i, nstates, year] <- 1-phi[3, i, year-1+offset]
-#       psi.mat[3, i, i, year] <- plogis(mu.psi[3] + eps.psi[i]) * phi[3, i, year-1+offset]
-#       for (j in 1:nsites) {
-#         if (i != j) {
-#           if (i == 1) {
-#             psi.mat[3, i, j, year] <-  (1-plogis(mu.psi[3] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, 2:nsites] + eps.psi[2:nsites]))) * phi[3, i, year-1+offset]
-#           } else if (i == nsites) {
-#             psi.mat[3, i, j, year] <-  (1-plogis(mu.psi[3] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, 1:(nsites-1)] + eps.psi[1:(nsites-1)]))) * phi[3, i, year-1+offset]
-#           } else {
-#             psi.mat[3, i, j, year] <-  (1-plogis(mu.psi[3] + eps.psi[i])) * (exp(beta.D*distmat[i, j] + eps.psi[j])/sum(exp(beta.D*distmat[i, c(1:max(i-1, 1), (min(nsites,i+1):nsites))] + eps.psi[c(1:max(i-1, 1), (min(nsites, i+1):nsites))]))) * phi[3, i, year-1+offset]
-#           }
-#         }
-#       }
-#     }
-#     
-#     return(psi.mat[1:3, 1:nstates, 1:nstates, year])
-#   }
-# )
-
+#### CONSTRUCT PSI MATRIX ####
 ConstructPsiMat <- nimbleFunction(
   run = function(nsites = double(0), 
                  nstates = double(0), 
@@ -147,6 +75,7 @@ ConstructPsiMat <- nimbleFunction(
 
 CConstructPsiMat <- compileNimble(ConstructPsiMat)
 
+#### CONSTRUCT DETECTION MATRIX ####
 ConstructDetMat <- nimbleFunction(
   run = function(nsites = double(0), 
                  nstates = double(0), 
@@ -173,6 +102,8 @@ ConstructDetMat <- nimbleFunction(
 
 CConstructDetMat <- compileNimble(ConstructDetMat)
 
+#### LIKELIHOOD FOR DYNAMIC HIDDEN MARKOV MODEL ####
+# NOTE - this is modified from NimbleEcology package to include 'mult'
 dDHMMo_mod <- nimbleFunction(
   run = function(x = double(1),    ## Observed capture (state) history
                  init = double(1),##
