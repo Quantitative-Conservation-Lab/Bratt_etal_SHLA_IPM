@@ -1,3 +1,9 @@
+repository in progress
+TODO
+finish run thru code to make sure works with new file structure
+tidy up code
+update readmes
+
 ## *Great GitHub Repos through the Ages* (Paper Title)
 
 #### Ann K Postdoc and Sarah J Converse (Paper Authors)
@@ -48,3 +54,4 @@ Warlick AJ, DS Johnson, TS Gelatt, and SJ Converse. 2022. Environmental drivers 
 ### How to Use this Repository 
 
 (Provide some guidance here to users, is there an order in which they should run things, for example?)  
+
