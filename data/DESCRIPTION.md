@@ -1,0 +1,1 @@
+This folder contains Rdata objects with each of the component datasets, processed for the IPM, along with any data objects required to reproduce the figures. 
