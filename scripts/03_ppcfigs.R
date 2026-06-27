@@ -111,3 +111,5 @@ table(d > 0)/length(d) # bayesian p value
 # n observed dispersal events by site
 # n observed dispersal events by year
 
+
+
