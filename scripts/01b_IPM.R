@@ -1,14 +1,3 @@
-# AEB
-
-# TODO
-# try dropping tacoma narrows and see if they all go to site 8
-# try reordering sites and see if they all go to TN
-# try CMR model on its own
-# summarize resights by site
-# consider dropping random effects or constrain them when data are poor
-# change the random effects structure on detection (higher detection should help decrease survival)
-# use covariates to explain variation instead of random effects
-
 # load libraries #####
 library(nimble)
 library(here)
@@ -22,15 +11,22 @@ library(tidyverse)
 library(postpack)
 library(strex)
 
-# source files #####
+# source files ####
+source(here("scripts", "00_nest_surv_nimbleFunctions.R"))
+load(here("data", "nestData.RData"))
 
-source(here("scripts","nestsurv", "nest_surv_nimbleFunctions.R"))
-load(here("data", "processed", "nestData.RData"))
+source(here("scripts", "00_cmr_nimblefunctions.R"))
+load(here("data", "cmrData.RData"))
 
-load(here("data", "processed", "cmrData.RData"))
-source(here("scripts","cmr", "cmr_nimblefunctions.R"))
+load(here("data", "countData.RData"))
 
-# FOR marginalizing, we are going to aggregate to the year level
+source(here("scripts", "00_ipm_nimblefunctions.R"))
+
+load(here("data", "init_priors.RData"))
+
+# process data ####
+
+# For marginalizing, we are going to aggregate to the year level
 str(CMR_Y)
 CMR_Y_robust <- CMR_Y
 CMR_Y <- matrix(NA, nrow = dim(CMR_Y_robust)[1], ncol = dim(CMR_Y_robust)[2])
@@ -61,14 +57,7 @@ for (i in 1:(dim(CMR_Y)[1])) {
   CMR_init[i, ] <- CMR_det.mat.init[tmp, ]
 }
 
-
-load(here("data", "processed", "countData.RData"))
-COUNT_survsites
 CMR_habitat <- c(2,1,1,1,2,2,2,1,1) # airfields are 1, prairies are 2
-
-source(here("scripts","ipm", "ipm_nimblefunctions.R"))
-
-load(here("data", "processed", "init_priors.RData"))
 
 # NIMBLE model #####
 code <- nimbleCode({
@@ -104,19 +93,19 @@ code <- nimbleCode({
   
   NEST_mean.f ~ dnorm(1, sd = 0.25)
   
-  NEST_sigma.site.f ~ dexp(10) # dexp(1)
+  NEST_sigma.site.f ~ dexp(10) 
   for (s in 1:NEST_nsites) {
     NEST_eps.site.f[s] ~ dnorm(0, sd = NEST_sigma.site.f)
   }
   
-  NEST_sigma.year.f ~ dexp(10) # dexp(1)
+  NEST_sigma.year.f ~ dexp(10) 
   for (y in 1:COUNT_nyears) {
     NEST_eps.year.f[y] ~ dnorm(0, sd = NEST_sigma.year.f)
   }
   
   for (s in 1:NEST_nsites) {
     for (y in 1:COUNT_nyears) {
-      log(NEST_lambda.f[s,y]) <- NEST_mean.f + NEST_eps.site.f[s] + NEST_eps.year.f[y] #+ NEST_eps.siteyear.f[s,y]
+      log(NEST_lambda.f[s,y]) <- NEST_mean.f + NEST_eps.site.f[s] + NEST_eps.year.f[y] 
     }
   }
   
@@ -126,7 +115,7 @@ code <- nimbleCode({
 
   for (s in 1:NEST_nsites) {
     for (y in 1:COUNT_nyears) {
-      log(NEST_lambda.r[s,y]) <- NEST_mean.r #+ NEST_eps.site.r[s] + NEST_eps.year.r[y] + NEST_eps.siteyear.r[s,y]
+      log(NEST_lambda.r[s,y]) <- NEST_mean.r 
     }
   }
   
@@ -135,15 +124,15 @@ code <- nimbleCode({
   for (i in 1:3) { # laying, incubating, nestling
     NEST_beta0[i] ~ dnorm(3.5, sd = 0.5)
   }
-  NEST_beta0[4] <- 3.5 # literally does not matter what these are
-  NEST_beta0[5] <- 3.5 # literally does not matter what these are
+  NEST_beta0[4] <- 3.5 # does not matter what these are
+  NEST_beta0[5] <- 3.5 # does not matter what these are
   
   NEST_sigma.site ~ dexp(10) 
   for (s in 1:NEST_nsites) {
     NEST_eps.site[s] ~ dnorm(0, sd = NEST_sigma.site)
   }
   
-  NEST_sigma.year ~ dexp(10) # dexp(1)
+  NEST_sigma.year ~ dexp(10) 
   for (y in 1:COUNT_nyears) {
     NEST_eps.year[y] ~ dnorm(0, sd = NEST_sigma.year)
   }
@@ -190,8 +179,6 @@ code <- nimbleCode({
   }
   phi_constraint_data ~ dconstraint( CMR_mean.phi[1] <= CMR_mean.phi[2] & CMR_mean.phi[2] <= CMR_mean.phi[3] )
   
-  # TODO - what to do about random effects for sites where there is no data
-  # eg is this way the results are so unreasonable for tacoma narrows??
   CMR_sigma.site ~ dexp(10)
   for (s in 1:CMR_nsites) {
     CMR_eps.site[s] ~ dnorm(0, sd = CMR_sigma.site)
@@ -205,7 +192,7 @@ code <- nimbleCode({
   for (i in 1:3) {
     for (s in 1:CMR_nsites) {
       for (y in 1:COUNT_nyears) {
-        logit(CMR_phi[i, s, y]) <- CMR_mean.phi[i] + CMR_eps.site[s] + CMR_eps.year[y] #+ CMR_eps.siteyear[s,y]
+        logit(CMR_phi[i, s, y]) <- CMR_mean.phi[i] + CMR_eps.site[s] + CMR_eps.year[y] 
       }
     }
   }
@@ -215,7 +202,7 @@ code <- nimbleCode({
   
   CMR_mu.psi[1] ~ T(dnorm(1, sd = 0.75), 1, Inf) # different across ages
   CMR_mu.psi[2] <- CMR_mu.psi[1]
-  CMR_mu.psi[3] ~ T(dnorm(2, sd = 0.75), 2, Inf) # different across ages
+  CMR_mu.psi[3] ~ T(dnorm(2, sd = 0.75), 2, Inf) 
   psi_constraint_data ~ dconstraint(CMR_mu.psi[1] <= CMR_mu.psi[3])
   
   # sites with high survival should be the ones that are more attractive
@@ -224,8 +211,6 @@ code <- nimbleCode({
     CMR_eps.psi[s] <- CMR_eps.site[s] 
   }
   
-  # EDIT - have changed this to be a fixed effect! was not identifiable before
-  #CMR_sigma.site.p ~ dexp(10)
   CMR_eps.habitat.p[1] <- 0 # airfield
   CMR_eps.habitat.p[2] ~ dnorm(0, sd = 1.5) # prairie, roughly uniform on logit scale
   
@@ -234,10 +219,8 @@ code <- nimbleCode({
   }
   p_constraint_data ~ dconstraint(CMR_beta.eff[1] >= CMR_beta.eff[2] & CMR_beta.eff[2] >= CMR_beta.eff[3])
   
-  
   for (s in 1:CMR_nsites) {
     CMR_eps.site.p[s] <- CMR_eps.habitat.p[CMR_habitat[s]]
-    #CMR_eps.site.p[s] <- 0
     CMR_p[4, s] <- 0 # detection is zero in years with no effort
   }
   
@@ -246,7 +229,6 @@ code <- nimbleCode({
       logit(CMR_p[ef, s]) <- CMR_beta.eff[ef] + CMR_eps.site.p[s]
     }
   }
-  
   
   # END priors and constraints
   
@@ -386,31 +368,13 @@ code <- nimbleCode({
         COUNT_uM[s, y, v] <- round(COUNT_Y.Uage.vis.adult.males[s, y, v] + COUNT_Y.Uage.aud.adult.males[s, y, v] + COUNT_Y.Uage.unk.adult.males[s, y, v] + COUNT_Y.Usex.vis.males[s, y, v] + COUNT_Y.Usex.aud.males[s, y, v] + COUNT_Y.Usex.unk.males[s, y, v])
         COUNT_uF[s, y, v] <- round(COUNT_Y.Uage.vis.adults[s, y, v] + COUNT_Y.Uage.aud.adults[s, y, v] + COUNT_Y.Uage.unk.adults[s, y, v] + COUNT_Y.Usex.vis[s, y, v] + COUNT_Y.Usex.aud[s, y, v] + COUNT_Y.Usex.unk[s, y, v] - COUNT_uM[s, y, v])
         
-        # STOCHASTIC VERSION
-        
-        # # probability that unclassified age birds are adults, given detection
-        # COUNT_Y.Uage.vis.adults[s, y, v] ~ dbin(COUNT_p.adult * COUNT_visited[s, y, v], COUNT_Y.Uage.vis[s, y, v])
-        # COUNT_Y.Uage.aud.adults[s, y, v] ~ dbin(COUNT_p.adult * COUNT_visited[s, y, v], COUNT_Y.Uage.aud[s, y, v])
-        # COUNT_Y.Uage.unk.adults[s, y, v] ~ dbin(COUNT_p.adult * COUNT_visited[s, y, v], COUNT_Y.Uage.unk[s, y, v])
-        # 
-        # # probability that unclassified age birds are m given detection
-        # COUNT_Y.Uage.vis.adult.males[s, y, v] ~ dbin(COUNT_p.male.vis, COUNT_Y.Uage.vis.adults[s, y, v])
-        # COUNT_Y.Uage.aud.adult.males[s, y, v] ~ dbin(COUNT_p.male.aud, COUNT_Y.Uage.aud.adults[s, y, v])
-        # COUNT_Y.Uage.unk.adult.males[s, y, v] ~ dbin(COUNT_p.male.unk, COUNT_Y.Uage.unk.adults[s, y, v])
-        # 
-        # # probability that unclassified sex birds are m, given detection
-        # COUNT_Y.Usex.vis.males[s, y, v] ~ dbin(COUNT_p.male.vis * COUNT_visited[s, y, v], COUNT_Y.Usex.vis[s, y, v] )
-        # COUNT_Y.Usex.aud.males[s, y, v] ~ dbin(COUNT_p.male.aud * COUNT_visited[s, y, v], COUNT_Y.Usex.aud[s, y, v] )
-        # COUNT_Y.Usex.unk.males[s, y, v] ~ dbin(COUNT_p.male.unk * COUNT_visited[s, y, v], COUNT_Y.Usex.unk[s, y, v] )
-        # 
-        # COUNT_uM[s, y, v] <-  COUNT_Y.Uage.vis.adult.males[s, y, v] + COUNT_Y.Uage.aud.adult.males[s, y, v] + COUNT_Y.Uage.unk.adult.males[s, y, v] + COUNT_Y.Usex.vis.males[s, y, v] + COUNT_Y.Usex.aud.males[s, y, v] + COUNT_Y.Usex.unk.males[s, y, v]
-        # COUNT_uF[s, y, v] <- COUNT_Y.Uage.vis.adults[s, y, v] + COUNT_Y.Uage.aud.adults[s, y, v] + COUNT_Y.Uage.unk.adults[s, y, v] + COUNT_Y.Usex.vis[s, y, v] + COUNT_Y.Usex.aud[s, y, v] + COUNT_Y.Usex.unk[s, y, v] - COUNT_uM[s, y, v]
+        # PUTTING IT ALL TOGETHER
         
         COUNT_Y.Amale[s, y, v] ~ dbin(COUNT_visited[s, y, v] * COUNT_thetaM[s, y, v], (COUNT_NadM.available[s, y] - COUNT_uM[s, y, v]))
         COUNT_Y.Afemale[s, y, v] ~ dbin(COUNT_visited[s, y, v] * COUNT_thetaF[s, y, v], (COUNT_NadF.available[s, y] - COUNT_uF[s, y, v]))
         
-        logit(COUNT_thetaM[s, y, v]) <- COUNT_beta0[1] #+ COUNT_eps.site[s] 
-        logit(COUNT_thetaF[s, y, v]) <- COUNT_beta0[2] #+ COUNT_eps.site[s] 
+        logit(COUNT_thetaM[s, y, v]) <- COUNT_beta0[1] 
+        logit(COUNT_thetaF[s, y, v]) <- COUNT_beta0[2] 
       } # v
     } # y
   } # s
@@ -559,11 +523,8 @@ dat <- list(
 # note - all years are aligned
 
 #COUNT_years # counts start in 2010, run through 2020 (11 years)
-#NEST_years # nests start in 2011, run through 2020??? (10 years) - solution is to add one to nest years
+#NEST_years # nests start in 2011, run through 2020 (10 years) - solution is to add one to nest years
 # resights start in 2013, run through 2020 ( 8 years) - solution is to add 3 to nest years
-
-#CMR[1] = COUNT[4] # count 
-#NEST[1] = COUNT[2]
 
 # note - all sites are aligned
 const <- list(
@@ -649,7 +610,6 @@ COUNT_N1F_goinits[, 1, ] <- diag(1, COUNT_nsites) * COUNT_NhatFinits[,1]
 COUNT_NadM_goinits[, 1, ] <- diag(1, COUNT_nsites) * COUNT_NhatMinits1[,1]
 COUNT_NadF_goinits[, 1, ] <- diag(1, COUNT_nsites) * COUNT_NhatFinits1[,1] 
 
-# TODO - redo all inits
 inits <- list(
   # COUNTS
   
@@ -675,10 +635,6 @@ inits <- list(
   COUNT_Y.Usex.aud.males = COUNT_Y.Usex.aud,
   COUNT_Y.Usex.unk.males = COUNT_Y.Usex.unk,
   
-  #NEST_Lbeta = runif(2, -0.1,0), #runif(2, -1, 0), 
-  #NEST_Ibeta = runif(2, -0.1,0), #runif(2, -1, 0),
-  #NEST_Nbeta = runif(2, -0.1,0), #runif(2, -1, 0)
-  
   NEST_STATE = NEST_STATEinits,
   NEST_TimeInStageInitDetectionLay = NEST_TimeInSTATEInitDetectionLay,
   NEST_TimeInStageInitDetectionInc = NEST_TimeInSTATEInitDetectionInc,
@@ -697,40 +653,20 @@ params <- c(
   "COUNT_p.male.unk", 
   "COUNT_p.adult",
   "COUNT_beta0", 
-  #"COUNT_sigma.site",
-  #"COUNT_sigma.year",
-  #"COUNT_sigma.siteyear",
-  #"COUNT_eps.site",
-  #"COUNT_eps.year",
-  #"COUNT_eps.siteyear",
   
   "NEST_mean.f",
   "NEST_sigma.site.f",
   "NEST_sigma.year.f",
-  #"NEST_sigma.siteyear.f",
   "NEST_eps.site.f",
   "NEST_eps.year.f",
-  #"NEST_eps.siteyear.f",
-  
+
   "NEST_mean.r",
-  # "NEST_sigma.site.r",
-  # "NEST_sigma.year.r",
-  # "NEST_sigma.siteyear.r",
-  # "NEST_eps.site.r",
-  # "NEST_eps.year.r",
-  # "NEST_eps.siteyear.r",
   
   "NEST_beta0",
   "NEST_sigma.site",
   "NEST_sigma.year",
-  #"NEST_sigma.siteyear",
   "NEST_eps.site",
   "NEST_eps.year",
-  #"NEST_eps.siteyear",
-  
-  #"NEST_Lbeta", 
-  #"NEST_Ibeta", 
-  #"NEST_Nbeta",
   
   "CMR_mean.phi",
   "CMR_sigma.site",
@@ -741,8 +677,6 @@ params <- c(
   "CMR_beta.D",
   "CMR_mu.psi",
   
-  #"CMR_sigma.eff.p",
-  #"CMR_sigma.site.p",
   'CMR_beta.eff',
   "CMR_eps.habitat.p",
   
@@ -774,9 +708,13 @@ params <- c(
   
 )
 
+save.image(here("results", "model-oct24.RData"))
+
+
 # MCMC SETTINGS ####
+# TODO have these set for testing, change to full run as needed
 nb <- 0#800#0#0 #burn-in
-ni <- 100000 #nb + nb #total iterations
+ni <- 1000#00 #nb + nb #total iterations #
 nt <- 1#0  #thin
 nc <- 3  #chains
 adaptInterval = 200
@@ -793,31 +731,23 @@ conf <- configureMCMC(Rmodel, monitors = params, thin = nt,
 beep(sound = 1)
 Rmcmc <- buildMCMC(conf) 
 beep(sound = 1)
-#nimbleOptions(pauseAfterWritingFiles = FALSE)
-#nimbleOptions(pauseAfterWritingFiles = TRUE)
 Cmodel <- compileNimble(Rmodel, 
-                        dirName = here("scripts", "IPM", "nimblecpp"), 
-                        resetFunctions = TRUE#,
-                        #showCompilerOutput = TRUE
+                        dirName = here("scripts", "nimblecpp"), 
+                        resetFunctions = TRUE
 ) 
 beep(sound = 1)
 Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 beep(sound = 1)
 
-# nodesToSim <- Rmodel$getDependencies(c("COUNT_initAbundProbs_M"))
-# nodesToSim
-# Rmodel$simulate(nodesToSim)
-# Rmodel$COUNT_initAbundProbs_M
-
 # RUN MCMC ####
 t.start <- Sys.time()
-#sink("out2.txt")
-out <- runMCMC(Cmcmc, niter = ni , nburnin = nb , nchains = 1, inits = inits,
+#sink("errors.txt")
+out <- runMCMC(Cmcmc, niter = ni , nburnin = nb , nchains = nc, inits = inits,
                setSeed = FALSE, progressBar = TRUE, samplesAsCodaMCMC = TRUE)  
 #sink()
 t.end <- Sys.time()
 (runTime <- t.end - t.start)
 beep(sound = 1)
-saveRDS(out, "out-IPMocc-Oct2024-chain1.RDS")
+saveRDS(out, file = here("results", "out-IPMocc-test.RDS")) # TODO change here
 
 
