@@ -21,7 +21,7 @@ load(here("results", "model-oct24.RData"))
 # MCMC SETTINGS ####
 # TODO have these set for testing, change to full run as needed
 nb <- 0#800#0#0 #burn-in
-ni <- 1000#00 #nb + nb #total iterations #
+ni <- 10000#0 #nb + nb #total iterations #
 nt <- 1#0  #thin
 nc <- 3  #chains
 adaptInterval = 200
@@ -56,7 +56,7 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 beep(sound = 1)
 
 # 500 samples plus 100 burnin in 10 mins
-system.time(samples <- runMCMC(Cmcmc, niter = 500, nburnin = 100)) # TODO change here
+system.time(samples <- runMCMC(Cmcmc, niter = ni, nburnin = ni/2)) # TODO change here
 beep(sound = 1)
 
 # Canonical scalar parameter names from mvSamples monitor definition
