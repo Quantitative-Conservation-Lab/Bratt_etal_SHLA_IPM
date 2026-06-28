@@ -204,6 +204,7 @@ A <- ggplot(cor.mat,aes(x=Laying_mean,y=Lambda_mean)) +
   geom_point(shape=21) + 
   geom_smooth(method='lm', se = F, col = "black") +
   theme_murres() +
+  theme(axis.line = element_line(color = "black")) +
   ylab("Population growth rate")+
   xlab("Laying") +
   stat_cor(cor.coef.name = "rho", label.x=0.75, label.y=1.5, digits = 2)
@@ -214,6 +215,7 @@ B <- ggplot(cor.mat,aes(x=Incubating_mean,y=Lambda_mean)) +
   geom_point(shape=21) + 
   geom_smooth(method='lm', se = F, col = "black") +
   theme_murres() +
+  theme(axis.line = element_line(color = "black")) +
   ylab("")+
   xlab("Incubating") +
   stat_cor(cor.coef.name = "rho", label.x=0.425, label.y=1.5, digits = 2)
@@ -224,6 +226,7 @@ C <- ggplot(cor.mat,aes(x=Nestling_mean,y=Lambda_mean)) +
   geom_point(shape=21) + 
   geom_smooth(method='lm', se = F, col = "black") +
   theme_murres() +
+  theme(axis.line = element_line(color = "black")) +
   ylab("")+
   xlab("Nestling") +
   stat_cor(cor.coef.name = "rho", label.x=0.575, label.y=1.5, digits = 2)
@@ -234,6 +237,7 @@ D <- ggplot(cor.mat,aes(x=L_mean,y=Lambda_mean)) +
   geom_point(shape=21) + 
   geom_smooth(method='lm', se = F, col = "black") +
   theme_murres() +
+  theme(axis.line = element_line(color = "black")) +
   ylab("Population growth rate")+
   xlab("Fledgling") +
   stat_cor(cor.coef.name = "rho", label.x=0.15, label.y=1.5, digits = 2)
@@ -244,6 +248,7 @@ E <- ggplot(cor.mat,aes(x=HY_mean,y=Lambda_mean)) +
   geom_point(shape=21) + 
   geom_smooth(method='lm', se = F, col = "black") +
   theme_murres() +
+  theme(axis.line = element_line(color = "black")) +
   ylab("")+
   xlab("Post-fledgling") +
   stat_cor(cor.coef.name = "rho", label.x=0.25, label.y=1.5, digits = 2)
@@ -254,6 +259,7 @@ Ff <- ggplot(cor.mat,aes(x=AHY_mean,y=Lambda_mean)) +
   geom_point(shape=21) + 
   geom_smooth(method='lm', se = F, col = "black") +
   theme_murres() +
+  theme(axis.line = element_line(color = "black")) +
   ylab("")+
   xlab("Adult") +
   stat_cor(cor.coef.name = "rho", label.x=0.375, label.y=1.5, digits = 2)
