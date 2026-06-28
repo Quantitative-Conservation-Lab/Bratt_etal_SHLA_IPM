@@ -1,8 +1,76 @@
 # NOTE: first need to run 02b_PVA
 
-# TODO load summarized results
+# load libraries #####
+library(coda)
+library(postpack)
+library(strex)
+library(tidyverse)
+library(beepr)
+library(here)
 
-# CORR PLOT
+# load data ####
+load(here("results", "processed-results-oct24.RData"))
+load(here("data", "nestData.RData"))
+
+# fig theme ####
+
+theme_murres <- function(){ 
+  font <- "Helvetica"   #assign font family up front
+  
+  theme_minimal() %+replace%    #replace elements we want to change
+    
+    theme(
+      
+      #grid elements
+      panel.grid.major = element_blank(),    #strip major gridlines
+      panel.grid.minor = element_blank(),    #strip minor gridlines
+      
+      #since theme_minimal() already strips axis lines, 
+      #we don't need to do that again
+      
+      #text elements
+      plot.title = element_text(             #title
+        family = font, color = "black",           #set font family
+        size = 14,                #set font size
+        #face = 'bold',            #bold typeface
+        hjust = 0,                #left align
+        vjust = 2),               #raise slightly
+      
+      plot.subtitle = element_text(          #subtitle
+        family = font, color = "black",           #font family
+        size = 14),               #font size
+      
+      axis.title = element_text(             #axis titles
+        family = font, color = "black",           #font family
+        size = 14),               #font size
+      
+      axis.ticks.x.bottom = element_blank(), 
+      axis.ticks.y.left = element_blank(), 
+      
+      axis.text = element_text(              #axis text
+        family = font, color = "black",           #axis famuly
+        size = 12),                #font size
+      
+      legend.title = element_text(             #axis titles
+        family = font, color = "black",           #font family
+        size = 14),               #font size
+      
+      legend.text = element_text(             #axis titles
+        family = font, color = "black",           #font family
+        size = 12),              #font size
+      
+      strip.text = element_text(             #axis titles
+        family = font, color = "black",           #font family
+        size = 12),               #font size
+      
+      strip.background = element_blank()
+      
+      #since the legend often requires manual tweaking 
+      #based on plot content, don't define it here
+    )
+}
+
+# CORR PLOT ----
 
 phi <- post_subset(out_wburnin_thinned, "mean.phi|CMR_eps.site[|CMR_eps.year|positive", matrix = T, iters = F, chains = F) %>% 
   as.data.frame() %>% 
@@ -24,7 +92,6 @@ phi <- post_subset(out_wburnin_thinned, "mean.phi|CMR_eps.site[|CMR_eps.year|pos
   filter(!(YearIndex %in% c(2019,2020)))
 
 out <- postpack::post_subset(out_wburnin_thinned, "NEST")
-
 
 out <- do.call(rbind, out) %>% 
   as.data.frame() %>% 
@@ -139,7 +206,7 @@ A <- ggplot(cor.mat,aes(x=Laying_mean,y=Lambda_mean)) +
   theme_murres() +
   ylab("Population growth rate")+
   xlab("Laying") +
-  stat_cor(aes(label=..rr.label..), label.x=0.75, label.y=1.5, digits = 2)
+  stat_cor(cor.coef.name = "rho", label.x=0.75, label.y=1.5, digits = 2)
 
 B <- ggplot(cor.mat,aes(x=Incubating_mean,y=Lambda_mean)) +
   geom_pointrange(aes(xmin=Incubating_lower,xmax=Incubating_upper),colour="grey",size=0.25) +
@@ -149,7 +216,7 @@ B <- ggplot(cor.mat,aes(x=Incubating_mean,y=Lambda_mean)) +
   theme_murres() +
   ylab("")+
   xlab("Incubating") +
-  stat_cor(aes(label=..rr.label..), label.x=0.425, label.y=1.5, digits = 2)
+  stat_cor(cor.coef.name = "rho", label.x=0.425, label.y=1.5, digits = 2)
 
 C <- ggplot(cor.mat,aes(x=Nestling_mean,y=Lambda_mean)) +
   geom_pointrange(aes(xmin=Nestling_lower,xmax=Nestling_upper),colour="grey",size=0.25) +
@@ -159,7 +226,7 @@ C <- ggplot(cor.mat,aes(x=Nestling_mean,y=Lambda_mean)) +
   theme_murres() +
   ylab("")+
   xlab("Nestling") +
-  stat_cor(aes(label=..rr.label..), label.x=0.575, label.y=1.5, digits = 2)
+  stat_cor(cor.coef.name = "rho", label.x=0.575, label.y=1.5, digits = 2)
 
 D <- ggplot(cor.mat,aes(x=L_mean,y=Lambda_mean)) +
   geom_pointrange(aes(xmin=L_lower,xmax=L_upper),colour="grey",size=0.25) +
@@ -169,7 +236,7 @@ D <- ggplot(cor.mat,aes(x=L_mean,y=Lambda_mean)) +
   theme_murres() +
   ylab("Population growth rate")+
   xlab("Fledgling") +
-  stat_cor(aes(label=..rr.label..), label.x=0.15, label.y=1.5, digits = 2)
+  stat_cor(cor.coef.name = "rho", label.x=0.15, label.y=1.5, digits = 2)
 
 E <- ggplot(cor.mat,aes(x=HY_mean,y=Lambda_mean)) +
   geom_pointrange(aes(xmin=HY_lower,xmax=HY_upper),colour="grey",size=0.25) +
@@ -179,7 +246,7 @@ E <- ggplot(cor.mat,aes(x=HY_mean,y=Lambda_mean)) +
   theme_murres() +
   ylab("")+
   xlab("Post-fledgling") +
-  stat_cor(aes(label=..rr.label..), label.x=0.25, label.y=1.5, digits = 2)
+  stat_cor(cor.coef.name = "rho", label.x=0.25, label.y=1.5, digits = 2)
 
 Ff <- ggplot(cor.mat,aes(x=AHY_mean,y=Lambda_mean)) +
   geom_pointrange(aes(xmin=AHY_lower,xmax=AHY_upper),colour="grey",size=0.25) +
@@ -189,9 +256,9 @@ Ff <- ggplot(cor.mat,aes(x=AHY_mean,y=Lambda_mean)) +
   theme_murres() +
   ylab("")+
   xlab("Adult") +
-  stat_cor(aes(label=..rr.label..), label.x=0.375, label.y=1.5, digits = 2)
+  stat_cor(cor.coef.name = "rho", label.x=0.375, label.y=1.5, digits = 2)
 
-png(here("results", "figures", "lambda_cor.png"), width = 9, height = 6, units = "in", res = 300)
+png(here("figures", "lambda_cor_june26.png"), width = 9, height = 6, units = "in", res = 300)
 plot_grid(A, B, C, 
           D, E, Ff, 
           #G, H, 

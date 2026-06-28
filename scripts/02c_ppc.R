@@ -7,15 +7,10 @@ library(beepr)
 library(here)
 library(nimble)
 
-
-# TODO load processed results
-
+# based on:
 # https://r-nimble.org/examples/posterior_predictive.html
 
-# TODO
-# get posterior predictive samples
-# calculate discrepancy statistics
-
+# load data #####
 load(here("results", "model-oct24.RData"))
 
 # MCMC SETTINGS ####
@@ -25,8 +20,6 @@ ni <- 10000#0 #nb + nb #total iterations #
 nt <- 1#0  #thin
 nc <- 3  #chains
 adaptInterval = 200
-
-# TODO - run based on a lot of samples
 
 # COMPILE CONFIGURE AND BUILD ####
 Rmodel <- nimbleModel(code = code, constants = const, data = dat, 
@@ -101,7 +94,6 @@ ppSamplerNF <- nimbleFunction(
     cat("Stochastic parents of data are:", paste(parentNodes, collapse = ','), ".\n")
     simNodes <- model$getDependencies(parentNodes, self = FALSE)
     
-    # TODO potentially edit
     vars <- model$expandNodeNames(mcmc$mvSamples$getVarNames(),
                                   returnScalarComponents = TRUE)
     dataVars <- model$expandNodeNames(dataNodes,
@@ -134,7 +126,6 @@ ppSamples_via_nf <- cppSampler$run(S)
 t.end <- Sys.time()
 t.end - t.start
 
-#save.image(here("results", "ppc-test.RData"))
 save(
   ppSamples_via_nf, S,
   file = here("results", "ppc-test.RData")

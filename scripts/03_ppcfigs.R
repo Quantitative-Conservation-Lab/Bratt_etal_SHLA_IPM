@@ -1,24 +1,19 @@
-# TODO
-# add comments
+# load libraries #####
+library(coda)
+library(postpack)
+library(strex)
+library(tidyverse)
+library(beepr)
+library(here)
+library(nimble)
+
+# load data #####
+load(here("results", "ppc-test.RData"))
 
 str(ppSamples_via_nf)
 str(dataVars_canonical)
 
 str(dat)
-
-# CMR_y - how to deal with this
-  # dispersal events 
-
-# TODO 
-  # create table of discrepancy measure
-  # bayesian p-value
-  # report ones where bayesian p value is greater than 0.95
-    # suggests concerning lack of fit
-
-# goodness of fit for females could be better
-# males in some years but overall ok
-
-# nests overall look great, this is an expected result
 
 # 1) Observed data vector in exact order
 y_obs <- values(Rmodel, dataVars_canonical)
@@ -53,7 +48,7 @@ obs_site <- sapply(u_site, function(s) sum(obs[site == s]))
 # replicated total per site for each posterior draw (M x n_site)
 rep_site <- sapply(u_site, function(s) rowSums(rep[, site == s, drop = FALSE]))
 
-# discrepancy per draw (example: sum absolute deviation across sites)
+# discrepancy per draw
 d_site <- apply(rep_site, 1, function(z) z - obs_site)
 
 par(mfrow = c(3,3)) 
@@ -68,7 +63,7 @@ u_year <- sort(unique(year))
 obs_year <- sapply(u_year, function(y) sum(obs[year == y]))
 rep_year <- sapply(u_year, function(y) rowSums(rep[, year == y, drop = FALSE]))
 
-# discrepancy per draw (example: sum absolute deviation across years)
+# discrepancy per draw 
 d_year <- apply(rep_year, 1, function(z) z - obs_year)
 
 par(mfrow = c(4,3)) 
@@ -103,7 +98,7 @@ obs_site <- sapply(u_site, function(s) sum(obs[site == s]))
 # replicated total per site for each posterior draw (M x n_site)
 rep_site <- sapply(u_site, function(s) rowSums(rep[, site == s, drop = FALSE]))
 
-# discrepancy per draw (example: sum absolute deviation across sites)
+# discrepancy per draw
 d_site <- apply(rep_site, 1, function(z) z - obs_site)
 
 par(mfrow = c(3,3)) 
@@ -118,7 +113,7 @@ u_year <- sort(unique(year))
 obs_year <- sapply(u_year, function(y) sum(obs[year == y]))
 rep_year <- sapply(u_year, function(y) rowSums(rep[, year == y, drop = FALSE]))
 
-# discrepancy per draw (example: sum absolute deviation across years)
+# discrepancy per draw
 d_year <- apply(rep_year, 1, function(z) z - obs_year)
 
 par(mfrow = c(4,3)) 
@@ -231,8 +226,6 @@ d <- apply(rep, 1, function(x) x == obs)
 
 # difference between posterior predictive sample and observed data value
 table(d)/length(d) # bayesian p value
-
-# if these don't match as well - model is overpredicting dispersal events
 
 ## BY YEAR ----
 for (s in unique(year)) {
