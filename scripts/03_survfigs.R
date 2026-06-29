@@ -112,7 +112,6 @@ toplot_surv_means <- phi %>%
   summarise(mean = mean(true_phi))
 
 plot_surv <- ggplot(phi, aes(x = YearIndex, y = true_phi, color = AgeIndex, fill = AgeIndex)) +
-  #stat_eye(alpha = 0.5, position = position_dodge(width = 0.5)) + 
   stat_pointinterval(position = position_dodge(width = 0.5)) +
   theme_murres() + 
   theme(legend.position = 'top',
@@ -134,16 +133,13 @@ toplot_surv_means <- phi %>%
 
 plot_surv <- ggplot(phi, aes(y = true_phi, x = (SiteIndex), color = AgeIndex#, fill = AgeIndex
                              )) +
-  #stat_eye(alpha = 0.5, position = position_dodge(width = 0.75)) + 
   stat_pointinterval(position = position_dodge(width = 0.5)) +
   theme_murres() + 
   theme(legend.position = 'top',
         axis.line = element_line(color = "black")) +
   ylab("Annual Survival Probability") + xlab("Site") +
   ylim(c(0,1)) +
-  #scale_fill_manual(values= pal, name = "Age") +
   scale_color_manual(values= pal, name = "Age") +
-  #facet_wrap(~AgeIndex) +
   theme(strip.text = element_blank()) +
   geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = AgeIndex), alpha = 0.5) +
   scale_x_discrete(limits = (levels(phi$SiteIndex)))
