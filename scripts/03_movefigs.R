@@ -1,12 +1,4 @@
-# Movement figure
-# Created by AJD - 3/01/2021
-# Updated 3/04/2021, 3/05/2021, 4/12/2021
-
-# TODO
-# need to fix the text
-
-#==================================== Load theme & libraries
-## load libraries
+# Libraries ########
 library(ggplot2)
 library(tidyverse)
 library(here)
@@ -16,17 +8,76 @@ library(cowplot)
 library(gridExtra)
 library(grid)
 
-## source files
+# plot theme ----
+theme_murres <- function(){ 
+  font <- "Helvetica"   #assign font family up front
+  
+  theme_minimal() %+replace%    #replace elements we want to change
+    
+    theme(
+      
+      #grid elements
+      panel.grid.major = element_blank(),    #strip major gridlines
+      panel.grid.minor = element_blank(),    #strip minor gridlines
+      
+      #since theme_minimal() already strips axis lines, 
+      #we don't need to do that again
+      
+      #text elements
+      plot.title = element_text(             #title
+        family = font, color = "black",           #set font family
+        size = 14,                #set font size
+        #face = 'bold',            #bold typeface
+        hjust = 0,                #left align
+        vjust = 2),               #raise slightly
+      
+      plot.subtitle = element_text(          #subtitle
+        family = font, color = "black",           #font family
+        size = 14),               #font size
+      
+      axis.title = element_text(             #axis titles
+        family = font, color = "black",           #font family
+        size = 14),               #font size
+      
+      axis.ticks.x.bottom = element_blank(), 
+      axis.ticks.y.left = element_blank(), 
+      
+      axis.text = element_text(              #axis text
+        family = font, color = "black",           #axis famuly
+        size = 12),                #font size
+      
+      legend.title = element_text(             #axis titles
+        family = font, color = "black",           #font family
+        size = 14),               #font size
+      
+      legend.text = element_text(             #axis titles
+        family = font, color = "black",           #font family
+        size = 12),              #font size
+      
+      strip.text = element_text(             #axis titles
+        family = font, color = "black",           #font family
+        size = 12),               #font size
+      
+      strip.background = element_blank()
+      
+      #since the legend often requires manual tweaking 
+      #based on plot content, don't define it here
+    )
+}
+
+# load data ----
+load(here("results", "processed-results-oct24.RData"))
+load(here("data", "cmrData.RData"))
+load(here("data", "countData.RData"))
+survsites <- COUNT_survsites
+ls()[grepl("COUNT", ls(), fixed = TRUE)]
+rm(list = ls()[grepl("COUNT", ls(), fixed = TRUE)])
+distmat <- CMR_dist.mat
+
+# plot ----
 
 ## choose colors 
 pal <- wes_palette("Zissou1", 500, type = "continuous")
-
-#==================================== Load All Covars Constant Sigma Phi chains
-# out11 <- readRDS(here("results", "out-cmr-chain1.RDS")) %>% as.data.frame()
-# out22 <- readRDS(here("results", "out-cmr-chain2.RDS")) %>% as.data.frame()
-# out33 <- readRDS(here("results", "out-cmr-chain3.RDS")) %>% as.data.frame()
-# 
-# out1 <- bind_rows(out11 = out11, out22 = out22, out33 = out33) 
 
 B.dists <- do.call(rbind, out_wburnin_thinned) %>% 
   as.data.frame() %>% 
@@ -38,9 +89,6 @@ out.mu.psi <- do.call(rbind, out_wburnin_thinned) %>%
 out.eps.psi <- do.call(rbind, out_wburnin_thinned) %>% 
   as.data.frame() %>% 
   dplyr::select(contains("CMR_eps.site["))
-
-load(here("data", "processed", "cmrData.RData"))
-distmat <- CMR_dist.mat
 
 prob.move.mean.SUB<- matrix(NA, nrow = dim(distmat)[1], ncol = dim(distmat)[1])
 prob.move.mean.AD<- matrix(NA, nrow = dim(distmat)[1], ncol = dim(distmat)[1])
@@ -71,7 +119,7 @@ for (i in 1:dim(distmat)[1]) {
   for (j in 1:dim(distmat)[1]) {
     
     #### ADULTS
-    p.stay <- as.data.frame(plogis((out.mu.psi$`CMR_mu.psi[3]`) + out.eps.psi[, i]))[, 1] # TODO
+    p.stay <- as.data.frame(plogis((out.mu.psi$`CMR_mu.psi[3]`) + out.eps.psi[, i]))[, 1] 
     p.move <- (1-p.stay)
     if(i == j) {
       prob.move <- p.stay
@@ -84,8 +132,6 @@ for (i in 1:dim(distmat)[1]) {
     rm(prob.move)
   }
 }
-
-survsites <- readRDS("~/Desktop/HOLA/data/processed/survsites.RDS")
 
 survsites <- survsites[c(4,8,9,2,1,5,3,7,6)]
 survsites <- LETTERS[1:9]
@@ -114,15 +160,28 @@ prob.move.mean.vSUB <- prob.move.mean.SUB %>%
   pivot_longer(-1, names_to = "site") %>% 
   mutate(Age = "Fledglings") 
 
+# Just checking
+test_ad <- prob.move.mean.AD
+diag(test_ad) <- NA
+rowSums(test_ad, na.rm = TRUE)
+apply(test_ad, 1, max, na.rm = TRUE)
+max(apply(test_ad, 1, max, na.rm = TRUE))
+
+test_sub <- prob.move.mean.SUB
+diag(test_sub) <- NA
+rowSums(test_sub, na.rm = TRUE)
+apply(test_sub, 1, max, na.rm = TRUE)
+max(apply(test_sub, 1, max, na.rm = TRUE))
+
 ## for facet-wrapping
 prob.move.mean.vBOTH <- bind_rows(prob.move.mean.vAD, prob.move.mean.vSUB)
 
-# subset first
-prob.move.BOTH <- prob.move.mean.vBOTH %>% 
+# this one used to make the dispersal matrix
+prob.move.BOTH <- prob.move.mean.vBOTH %>%
   mutate(value = if_else(value < 0.4, NA_real_, value))
 
-# subset first
-prob.move.BOTH2 <- prob.move.mean.vBOTH %>% 
+# this one used to make the fidelity matrix
+prob.move.BOTH2 <- prob.move.mean.vBOTH %>%
   mutate(value = if_else(value > 0.4, NA_real_, value))
 
 pal2 <- wes_palette("Zissou1", 5, type = "continuous")
@@ -132,14 +191,16 @@ lapply(rev(c("Adults", "Fledglings")), function(cc) {
   gg <- ggplot(data = filter(prob.move.BOTH2, Age == cc), 
                aes(x = site, y=rowname, fill=value, colour = "")) + 
     geom_tile(aes(height = 0.9, width = 0.9)) +
-    scale_fill_gradientn(colours = pal, 
-                         #limits = c(0,0.1),
-                         breaks = pretty(range(0, 0.1), n = 5),
-                         na.value = "gray80") +
+    scale_fill_gradientn(
+      colours = pal,
+      limits = c(0, 0.1),              # for move panel
+      breaks = seq(0, 0.1, by = 0.025),
+      oob = scales::squish,
+      na.value = "gray80"
+    ) + 
     scale_colour_manual(values=NA) +
     xlab("To") +
     theme_murres() +
-    #theme_minimal() +
     labs(subtitle = cc,
          title = if_else(cc == "Fledglings", "Site-specific dispersal probability", ""),
          fill = "Probability\nof moving") +
@@ -147,15 +208,9 @@ lapply(rev(c("Adults", "Fledglings")), function(cc) {
     guides(colour=guide_legend("Not applicable", override.aes=list(fill="gray80"), order = 1)) + 
     coord_equal() +
     theme(legend.position = "right",
-          #legend.text = element_text(size = 12),
-          #legend.title = element_text(size = 14),
           plot.margin = unit(c(0, 0, 0, 0), "cm"),
-          #axis.text = element_text(size = 12),
           axis.text.x = element_text(angle = 0),
-          #axis.title=element_text(size=14),
-          #plot.subtitle = element_text(size = 14),
           plot.title.position = "plot"#, 
-          #plot.title = element_text(face = "plain", size = 14)
           )
 }) -> cclistGO
 
@@ -169,13 +224,15 @@ lapply(rev(c("Adults", "Fledglings")), function(cc) {
   gg <- ggplot(data = filter(prob.move.BOTH, Age == cc), 
                aes(x = site, y=rowname, fill=value, colour = "")) + 
     geom_tile(aes(height = 0.9, width = 0.9)) +
-    scale_fill_gradientn(colours = pal, 
-                         #limits = c(0.4,1),
-                         breaks = pretty(range(0.4, 1), n = 5),
-                         na.value = "gray80") +
+    scale_fill_gradientn(
+      colours = pal,
+      limits = c(0.4, 1),              # for stay panel
+      breaks = seq(0.4, 1, by = 0.15),
+      oob = scales::squish,
+      na.value = "gray80"
+    ) + 
     scale_colour_manual(values=NA) +
     xlab("To") +
-    # theme_minimal() +
     theme_murres() +
     labs(subtitle = cc, 
          title = if_else(cc == "Fledglings", "Site fidelity", ""),
@@ -184,15 +241,9 @@ lapply(rev(c("Adults", "Fledglings")), function(cc) {
     guides(colour=guide_legend("Not applicable", override.aes=list(fill="gray80"), order = 1)) + 
     coord_equal() +
     theme(legend.position = "right",
-          #legend.text = element_text(size = 12),
-          #legend.title = element_text(size = 14),
           plot.margin = unit(c(0, 0, 0, 0), "cm"),
-          #axis.text = element_text(size = 12),
           axis.text.x = element_text(angle = 0),
-          #axis.title=element_text(size=14),
-          #plot.subtitle = element_text(size = 14),
           plot.title.position = "plot"#, 
-          #plot.title = element_text(face = "plain", size = 14)
     )
   #gg
 }) -> cclistSTAY
@@ -203,8 +254,12 @@ cclistSTAY[[2]] <- cclistSTAY[[2]] + theme(legend.position = "none")
 cclistSTAY[["ncol"]] <- 2
 top_row <- do.call(grid.arrange, cclistSTAY)
 
-
-png(here("results", "figures", "movement-nov24.png"), width = 9, height = 8, units = "in", res = 300)
-plot_grid(top_row, top_leg, bottom_row, bottom_leg, nrow = 2, ncol = 2, rel_heights = c(1, 1), rel_widths = c(0.85, 0.15), labels = c("", ""), scale = 0.95)
+png(here("figures", "movement-june26.png"), width = 9, height = 8, units = "in", res = 300)
+plot_grid(top_row, 
+          top_leg, 
+          bottom_row, 
+          bottom_leg, 
+          #nrow = 2, ncol = 1, rel_heights = c(1), rel_widths = c(1), labels = c(""), scale = 0.95)
+          nrow = 2, ncol = 2, rel_heights = c(1, 1), rel_widths = c(0.85, 0.15), labels = c("", ""), scale = 0.95)
 dev.off()
 
