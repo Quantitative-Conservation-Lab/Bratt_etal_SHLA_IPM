@@ -8,6 +8,7 @@ library(here)
 library(nimble)
 
 # load data #####
+# NOTE - first need to run thru line 65 of 02c_ppc.R
 load(here("results", "ppc-test.RData"))
 
 str(ppSamples_via_nf)
@@ -53,7 +54,7 @@ d_site <- apply(rep_site, 1, function(z) z - obs_site)
 
 par(mfrow = c(3,3)) 
 for (i in 1:nrow(d_site)) {
-  hist(d_site[i, ])
+  #hist(d_site[i, ])
   print(table(d_site[i,] > 0)/length(d_site[i,]))
 }
 
@@ -68,7 +69,7 @@ d_year <- apply(rep_year, 1, function(z) z - obs_year)
 
 par(mfrow = c(4,3)) 
 for (i in 1:nrow(d_year)) {
-  hist(d_year[i, ])
+  #hist(d_year[i, ])
   print(table(d_year[i,] > 0)/length(d_year[i,]))
 }
 
@@ -103,7 +104,7 @@ d_site <- apply(rep_site, 1, function(z) z - obs_site)
 
 par(mfrow = c(3,3)) 
 for (i in 1:nrow(d_site)) {
-  hist(d_site[i, ])
+  #hist(d_site[i, ])
   print(table(d_site[i,] > 0)/length(d_site[i,]))
 }
 
@@ -118,7 +119,7 @@ d_year <- apply(rep_year, 1, function(z) z - obs_year)
 
 par(mfrow = c(4,3)) 
 for (i in 1:nrow(d_year)) {
-  hist(d_year[i, ])
+  #hist(d_year[i, ])
   print(table(d_year[i,] > 0)/length(d_year[i,]))
 }
 
@@ -254,3 +255,5 @@ for (s in unique(ind)) {
 # ok, so looks like we mostly do a good job not overpredicting dispersal events
 d <- apply(d_ind, 1, function(x) sum(x)/length(x))
 hist(d)
+
+table(d_ind)/length(d_ind) 
