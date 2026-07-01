@@ -1,3 +1,28 @@
+# Libraries ########
+library(here)
+library(tidyverse)
+library(coda)
+library(ggplot2)
+library(RColorBrewer)
+library(viridis)
+library(tidybayes)
+library(ggdist)
+library(beepr)
+library(wesanderson)
+library(forcats)
+library(nimble)
+library(strex)
+library(postpack)
+
+# load data ----
+load(here("results", "processed-results-oct24.RData"))
+load(here("data", "countData.RData"))
+load(here("data", "nestData.RData"))
+survsites <- COUNT_survsites
+ls()[grepl("COUNT", ls(), fixed = TRUE)]
+rm(list = ls()[grepl("COUNT", ls(), fixed = TRUE)])
+load(here("results", "PVA-results-feb25.RData"))
+
 # ESTIMATES #####
 
 ## COUNT ####
@@ -77,9 +102,6 @@ paste0(ind[2], " (", ind[1], ", ", ind[3], ")")
 # NEST_eps.year[y] ~ dnorm(0, sd = NEST_sigma.year)
 ind <- summ %>% filter(str_detect(name, "NEST_eps.year\\[")) %>% select(4:6)
 ind
-
-library(here)
-load(here("data", "processed", "nestData.RData"))
 
 out <- postpack::post_subset(out_wburnin_thinned, "NEST")
 
@@ -341,7 +363,7 @@ pop_abund_F_region <- COUNT_NtotF_samps %>%
   mutate(across(where(is.numeric), ~ round(., 3))) 
 pop_abund_F_region
 
-# site specific lambda over data period - males
+# site specific lambda over data period - total
 # prob decline 
 COUNT_Ntot_samps <- post_subset(out_wburnin_thinned, "COUNT_Ntot\\[", matrix = T, iters = F, chains = F) %>% 
   as.data.frame() %>% 
@@ -349,6 +371,7 @@ COUNT_Ntot_samps <- post_subset(out_wburnin_thinned, "COUNT_Ntot\\[", matrix = T
   mutate(Site = str_nth_number(name, 1), 
          Year = str_nth_number(name, 2) + 2010 - 1) 
 
+# by site
 pop_growth <- COUNT_Ntot_samps %>% 
   select(-c(1)) %>% 
   group_by(Site, Year) %>% 
@@ -372,6 +395,25 @@ pop_growth <- COUNT_Ntot_samps %>%
     Site = factor(Site, levels = survsites[c(4,8,9,2,1,5,3,7,6)], labels = LETTERS[1:9])) 
 pop_growth %>% arrange(Lambda_mean)
 
+# by year
+pop_growth_annual <- COUNT_Ntot_samps %>% 
+  select(-c(1)) %>% 
+  group_by(Site, Year) %>% 
+  mutate(index = row_number()) %>% 
+  ungroup() %>% 
+  group_by(index, Year) %>% 
+  summarise(value = sum(value)) %>% 
+  group_by(index) %>% 
+  mutate(lambda = value/lag(value)) %>% 
+  group_by(Year) %>% 
+  summarize(across(lambda, .fns = list(mean = ~ mean(., na.rm = T), 
+                                      lower = ~ quantile(., 0.025, na.rm = T), 
+                                      upper = ~ quantile(., 0.975, na.rm = T)), 
+                   .names = "{col}_{fn}")) %>% 
+  mutate(across(where(is.numeric), ~ round(., 3))) 
+pop_growth_annual
+
+# regional
 pop_growth_region <- COUNT_Ntot_samps %>% 
   select(-c(1)) %>% 
   group_by(Site, Year) %>% 
@@ -618,3 +660,23 @@ pop_growth_sex_regional <- PVA_COUNT_Ntot %>%
   mutate(across(where(is.numeric), ~ round(., 3))) 
 pop_growth_sex_regional_M <- pop_growth_sex_regional %>% filter(Sex == "Male") 
 pop_growth_sex_regional_F <- pop_growth_sex_regional %>% filter(Sex == "Female") 
+
+## Parameter tables
+
+# Sex specific N estimates
+tab_Nests <- summ_Nests %>% 
+  select(-c(Rhat, neff)) %>% 
+  pivot_wider(names_from = Sex, values_from = `2.5%`:`97.5%`, names_vary = "slowest")
+
+write_csv(tab_Nests, 
+          here("results", "tab_N_ests.csv"), 
+          )
+
+# Hyperparameters, not including site and year specific deviates for brevity
+tab_hyper <- summ_noMove_noEps
+  
+write_csv(tab_hyper, 
+          here("results", "tab_hyper.csv"), 
+)
+
+
