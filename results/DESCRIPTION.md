@@ -1,1 +1,0 @@
-For results of the MCMC chains, please contact the corresponding author as the MCMC objects are exceedingly large. 
