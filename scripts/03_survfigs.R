@@ -112,6 +112,7 @@ toplot_surv_means <- phi %>%
   summarise(mean = mean(true_phi))
 
 plot_surv <- ggplot(phi, aes(x = YearIndex, y = true_phi, color = AgeIndex, fill = AgeIndex)) +
+  geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = AgeIndex), alpha = 0.5) +
   stat_pointinterval(position = position_dodge(width = 0.5)) +
   theme_murres() + 
   theme(legend.position = 'top',
@@ -120,7 +121,6 @@ plot_surv <- ggplot(phi, aes(x = YearIndex, y = true_phi, color = AgeIndex, fill
   ylim(c(0,1))+
   scale_fill_manual(values= pal, name = "Age") +
   scale_color_manual(values= pal, name = "Age") +
-  geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = AgeIndex), alpha = 0.5) +
   scale_x_continuous(breaks=seq(2010, 2020, 2))
 
 annual_plot <- plot_surv
@@ -133,6 +133,7 @@ toplot_surv_means <- phi %>%
 
 plot_surv <- ggplot(phi, aes(y = true_phi, x = (SiteIndex), color = AgeIndex#, fill = AgeIndex
                              )) +
+  geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = AgeIndex), alpha = 0.5) +
   stat_pointinterval(position = position_dodge(width = 0.5)) +
   theme_murres() + 
   theme(legend.position = 'top',
@@ -141,7 +142,6 @@ plot_surv <- ggplot(phi, aes(y = true_phi, x = (SiteIndex), color = AgeIndex#, f
   ylim(c(0,1)) +
   scale_color_manual(values= pal, name = "Age") +
   theme(strip.text = element_blank()) +
-  geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = AgeIndex), alpha = 0.5) +
   scale_x_discrete(limits = (levels(phi$SiteIndex)))
 
 site_plot <- plot_surv

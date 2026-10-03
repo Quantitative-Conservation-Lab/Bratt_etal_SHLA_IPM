@@ -117,6 +117,7 @@ for (i in 1:9) {
     theme_minimal() + 
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(), 
+          plot.margin = margin(t = 10, r = 20, b = 10, l = 10),
           axis.text.x = element_text(size = 16),
           axis.line = element_line(),
           axis.text.y = element_text(size = 16),
@@ -170,7 +171,7 @@ leftpanel <- plot_grid(
   bottomrow,
   labels = c("", "", "", ""), ncol = 1, nrow = 3,
   rel_heights = c(1, 1, 1), 
-  scale = c(0.975, 0.975, 0.975, 0.975)) 
+  scale = c(0.9, 0.9, 0.9)) 
 leftpanel
 
 newleftpanel <- ggdraw() + 

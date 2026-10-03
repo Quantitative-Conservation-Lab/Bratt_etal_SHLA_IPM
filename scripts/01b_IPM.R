@@ -286,7 +286,7 @@ code <- nimbleCode({
     
     COUNT_conditional_moveprobs[1, site, 1] <- COUNT_moveprobs[1, site, 1]
     COUNT_conditional_moveprobs[2, site, 1] <- COUNT_moveprobs[2, site, 1]
-    for (tosite in 2:(COUNT_nsites-1)) { # TODO - is this the issue?
+    for (tosite in 2:(COUNT_nsites-1)) { 
       COUNT_conditional_moveprobs[1, site, tosite] <- COUNT_moveprobs[1, site, tosite] / (1-sum(COUNT_moveprobs[1, site, 1:(tosite-1)]))
       COUNT_conditional_moveprobs[2, site, tosite] <- COUNT_moveprobs[2, site, tosite] / (1-sum(COUNT_moveprobs[2, site, 1:(tosite-1)]))
     }

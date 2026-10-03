@@ -122,6 +122,7 @@ for (i in 1:COUNT_nsites) {
     theme_minimal() + 
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(), 
+          plot.margin = margin(t = 10, r = 20, b = 10, l = 10),
           axis.text = element_text(size = 16),
           axis.line = element_line(),
           legend.position = "none", 
@@ -142,6 +143,7 @@ for (i in 1:COUNT_nsites) {
     theme_minimal() + 
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(), 
+          plot.margin = margin(t = 10, r = 20, b = 10, l = 10),
           axis.line = element_line(),
           axis.ticks.y = element_blank(),
           axis.text = element_text(size = 16),
@@ -205,7 +207,7 @@ leftpanel <- plot_grid(#legendrow,
   bottomrow,
   labels = c("", "", ""), ncol = 1, nrow = 3,
   rel_heights = c(1, 1, 1), 
-  scale = c(0.975, 0.975, 0.975, 0.975)) 
+  scale = c(0.975, 0.975, 0.975)) 
 leftpanel
 
 newleftpanel <- ggdraw() + 

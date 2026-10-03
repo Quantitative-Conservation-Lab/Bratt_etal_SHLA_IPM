@@ -145,6 +145,7 @@ toplot_surv_means <- out_nest %>%
 
 plot_surv <- ggplot(out_nest, aes(y = Stage, x = SiteIndex, color = StageIndex#, fill = AgeIndex
 )) +
+  geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = StageIndex), alpha = 0.5) +
   stat_pointinterval(position = position_dodge(width = 0.5)) +
   theme_murres() + 
   theme(legend.position = 'top') +
@@ -153,7 +154,6 @@ plot_surv <- ggplot(out_nest, aes(y = Stage, x = SiteIndex, color = StageIndex#,
   scale_color_manual(values= pal, name = "State") +
   theme(strip.text = element_blank(),
         axis.line = element_line(color = "black")) +
-  geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = StageIndex), alpha = 0.5) +
   scale_x_discrete(limits = (levels(out_nest$SiteIndex)))
 
 site_plot <- plot_surv
@@ -163,6 +163,7 @@ toplot_surv_means <- out_nest %>%
   summarise(mean = mean(Stage))
 
 plot_surv <- ggplot(out_nest, aes(x = YearIndex, y = Stage, color = StageIndex, fill = StageIndex)) +
+  geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = StageIndex), alpha = 0.5) +
   stat_pointinterval(position = position_dodge(width = 0.5)) +
   theme_murres() + 
   theme(legend.position = 'top',
@@ -171,7 +172,6 @@ plot_surv <- ggplot(out_nest, aes(x = YearIndex, y = Stage, color = StageIndex, 
   ylim(c(0,1))+
   scale_fill_manual(values= pal, name = "State") +
   scale_color_manual(values= pal, name = "State") +
-  geom_hline(data = toplot_surv_means, aes(yintercept=mean, col = StageIndex), alpha = 0.5) +
   scale_x_continuous(breaks=seq(2010, 2020, 2))
 
 annual_plot <- plot_surv
